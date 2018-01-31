@@ -1,0 +1,145 @@
+---
+- name: Install Required packages
+  xbps:
+    pkg:
+      - dxpb-server-all
+      - git
+      - acl-progs
+    state: present
+
+- name: Initial directory bootstrap
+  command: sh /etc/dxpb/sv-common
+  args:
+    creates: /var/lib/dxpb
+
+- name: Create pkgroot
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: _dxpb_filer
+    group: _dxpb
+    mode: 0755
+  with_items:
+    - "{{ dxpb_master_dataroot }}"
+    - "{{ dxpb_master_pkgroot }}"
+    - "{{ dxpb_master_stagedir }}"
+    - "{{ dxpb_master_buildlogdir }}"
+    - "{{ dxpb_master_autoflagsdir }}"
+
+- name: Create grapher gitroot
+  file:
+    path: /var/cache/dxpb/repo
+    state: directory
+    owner: _dxpb_import
+    group: _dxpb_import
+    mode: 0755
+
+- name: Obtain initial Git checkout for {{ dxpb_master_repo_giturl }}
+  git:
+    repo: "{{ dxpb_master_repo_giturl }}"
+    dest: /var/cache/dxpb/repo
+    update: no
+    remote: dxpb-remote
+  become_user: _dxpb_import
+
+- name: Perform initial binary-bootstrap
+  command: ./xbps-src binary-bootstrap
+  args:
+    chdir: /var/cache/dxpb/repo
+    creates: masterdir
+  become_user: _dxpb_import
+
+- name: Detect if initial bootstrap is required
+  stat:
+    path: "{{ dxpb_master_autoflagsdir }}/pkg_bootstrap_done"
+  register: bootstrap_done
+
+- name: Preseed pkgroot with pre-built artifacts
+  command: cp -r /var/cache/dxpb/repo/hostdir/repocache/. {{ dxpb_master_pkgroot }}/
+  when: not bootstrap_done.stat.exists
+
+- name: Correct bootstrap artifact permissions
+  command: chown -R _dxpb_filer:_dxpb {{ dxpb_master_pkgroot }}/.
+  when: not bootstrap_done.stat.exists
+
+- name: Set bootstrap_done flag
+  file:
+    path: "{{ dxpb_master_autoflagsdir }}/pkg_bootstrap_done"
+    state: touch
+    owner: root
+    group: root
+    mode: 0644
+  when: not bootstrap_done.stat.exists
+
+- name: Configure dxpb-pkgimport-master
+  template:
+    src: dxpb-pkgimport-master.conf.j2
+    dest: /etc/sv/dxpb-pkgimport-master/conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - dxpb-pkgimport-master
+
+- name: Configure dxpb-pkgimport-agent
+  template:
+    src: dxpb-pkgimport-agent.conf.j2
+    dest: /etc/sv/dxpb-pkgimport-agent-generic/conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - dxpb-pkgimport-agent
+
+- name: Configure dxpb-frontend
+  template:
+    src: dxpb-frontend.conf.j2
+    dest: /etc/sv/dxpb-frontend/conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - dxpb-frontend
+
+- name: Install firewall rules
+  template:
+    src: dxpb-master.rules
+    dest: /etc/iptables.d/dxpb-master.rules
+    owner: root
+    group: root
+    mode: 0640
+  notify:
+    - iptables
+
+- name: Enable dxpb-frontend
+  runit:
+    name: dxpb-frontend
+    enabled: yes
+    state: started
+
+- name: Enable dxpb-pkgimport-master
+  runit:
+    name: dxpb-pkgimport-master
+    enabled: yes
+    state: started
+
+- name: Enable dxpb-pkgimport-agents
+  runit:
+    name: dxpb-pkgimport-agent-{{ item }}
+    enabled: yes
+    state: started
+  with_sequence: start=1 end="{{ dxpb_master_agent_count }}"
+  loop_control:
+    label: dxpb-pkgimport-agent-{{ item }}
+
+- name: Enable dxpb-grapher
+  runit:
+    name: dxpb-grapher
+    enabled: yes
+    state: started
+
+- name: Enable dxpb-hostdir-hostdir-master
+  runit:
+    name: dxpb-hostdir-master
+    enabled: yes
+    state: started

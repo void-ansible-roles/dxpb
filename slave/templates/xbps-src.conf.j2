@@ -1,0 +1,6 @@
+XBPS_MAKEJOBS={{ dxpb_slave_makejobs | default(6) }}
+XBPS_CCACHE={{ dxpb_slave_ccache_enabled | default(true) | ternary("yes", "no") }}
+XBPS_DEBUG_PKGS={{ dxpb_slave_debug_pkgs | default(true) | ternary("yes", "no") }}
+XBPS_CHROOT_CMD={{ dxpb_slave_chroot_cmd | default("uchroot") }}
+XBPS_USE_GIT_REVS={{ dxpb_slave_use_git_revs | default(true) | ternary("yes", "no") }}
+XBPS_INSTALL_ARGS="--repository={{ dxpb_slave_mirror }}"

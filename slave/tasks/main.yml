@@ -1,0 +1,98 @@
+---
+- name: Install packages
+  xbps:
+    pkg:
+      - dxpb-remote
+    state: present
+
+- name: Create the buildslave root
+  file:
+    path: "{{ dxpb_slave_root }}"
+    state: directory
+    owner: _dxpb_build
+    group: _dxpb
+    mode: 0755
+
+- name: Obtain package tree for builders
+  git:
+    repo: "{{ dxpb_repo_giturl }}"
+    dest: "{{ dxpb_slave_root }}/{{ item.name }}"
+    update: no
+    remote: dxpb-remote
+  become_user: _dxpb_build
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create dxpb-build tasks
+  file:
+    path: /etc/sv/dxpb-build-{{ item.name }}
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure dxpb-build tasks
+  template:
+    src: build-conf.j2
+    dest: /etc/sv/dxpb-build-{{ item.name }}/conf
+    owner: root
+    group: root
+    mode: 0644
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install dxpb-build run-files
+  file:
+    src: /etc/sv/dxpb-builder/run
+    dest: /etc/sv/dxpb-build-{{ item.name }}/run
+    state: link
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create dxpb-hostdir tasks
+  file:
+    path: /etc/sv/dxpb-hostdir-{{ item.name }}
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Configure dxpb-hostdir tasks
+  template:
+    src: hostdir-conf.j2
+    dest: /etc/sv/dxpb-hostdir-{{ item.name }}/conf
+    owner: root
+    group: root
+    mode: 0644
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install dxpb-hostdir run-files
+  file:
+    src: /etc/sv/dxpb-hostdir-remote/run
+    dest: /etc/sv/dxpb-hostdir-{{ item.name }}/run
+    state: link
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install xbps-src.conf to etc/conf
+  template:
+    src: xbps-src.conf.j2
+    dest: "{{ dxpb_slave_root }}/{{ item.name }}/etc/conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_list: "{{ dxpb_buildslaves }}"
+  loop_control:
+    label: "{{ item.name }}"

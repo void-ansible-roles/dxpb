@@ -1,0 +1,5 @@
+---
+dxpb_master_pkgroot: "{{ dxpb_master_dataroot }}/pkgs"
+dxpb_master_stagedir: "{{ dxpb_master_dataroot }}/staging"
+dxpb_master_buildlogdir: "{{ dxpb_master_dataroot }}/logs"
+dxpb_master_autoflagsdir: "{{ dxpb_master_dataroot }}/auto"

@@ -1,0 +1,8 @@
+---
+dxpb_master_repo_giturl: git://github.com/voidlinux/void-packages.git
+
+dxpb_master_dataroot: /var/lib/dxpb
+
+dxpb_master_agent_count: 10
+
+dxpb_master_frontend_bind: 127.0.0.1

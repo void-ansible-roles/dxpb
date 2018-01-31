@@ -1,0 +1,16 @@
+---
+- name: dxpb-pkgimport-master
+  runit:
+    name: dxpb-pkgimport-master
+    state: restarted
+
+- name: dxpb-pkgimport-agent
+  runit:
+    name: "dxpb-pkgimport-agent-{{ item }}"
+    state: restarted
+  with_sequence: start=1 end="{{ dxpb_master_agent_count }}"
+
+- name: dxpb-frontend
+  runit:
+    name: dxpb-frontend
+    state: restarted
