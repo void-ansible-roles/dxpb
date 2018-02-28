@@ -13,13 +13,13 @@
     group: _dxpb
     mode: 0755
 
-- name: Obtain package tree for builders
-  git:
-    repo: "{{ dxpb_repo_giturl }}"
-    dest: "{{ dxpb_slave_root }}/{{ item.name }}"
-    update: no
-    remote: dxpb-remote
-  become_user: _dxpb_build
+- name: Create package tree directory for builders
+  file:
+    path: "{{ dxpb_slave_root }}/{{ item.name }}"
+    state: directory
+    owner: _dxpb_build
+    group: _dxpb
+    mode: 0755
   with_list: "{{ dxpb_buildslaves }}"
   loop_control:
     label: "{{ item.name }}"
