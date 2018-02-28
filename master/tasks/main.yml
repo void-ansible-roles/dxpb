@@ -34,14 +34,6 @@
     group: _dxpb_import
     mode: 0755
 
-- name: Obtain initial Git checkout for {{ dxpb_master_repo_giturl }}
-  git:
-    repo: "{{ dxpb_master_repo_giturl }}"
-    dest: /var/cache/dxpb/repo
-    update: no
-    remote: dxpb-remote
-  become_user: _dxpb_import
-
 - name: Perform initial binary-bootstrap
   command: ./xbps-src binary-bootstrap
   args:
