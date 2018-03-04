@@ -86,13 +86,15 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: Install xbps-src.conf to etc/conf
+- name: Set _dxpb_build homedir
+  user:
+    name: _dxpb_build
+    home: "{{ dxpb_slave_root }}"
+
+- name: Install xbps-src.conf to {{ dxpb_slave_root }}
   template:
     src: xbps-src.conf.j2
-    dest: "{{ dxpb_slave_root }}/{{ item.name }}/etc/conf"
+    dest: "{{ dxpb_slave_root }}/.xbps-src.conf"
     owner: root
     group: root
     mode: 0644
-  with_list: "{{ dxpb_buildslaves }}"
-  loop_control:
-    label: "{{ item.name }}"
