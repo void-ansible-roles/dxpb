@@ -1,4 +1,4 @@
 ---
 dxpb_slave_root: /srv/dxpb/slave/
-dxpb_repo_giturl: git://github.com/voidlinux/void-packages.git
+dxpb_repo_giturl: git://github.com/void-linux/void-packages.git
 dxpb_slave_mirror: https://voidlinux.eu/current

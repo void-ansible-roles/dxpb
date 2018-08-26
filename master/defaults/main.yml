@@ -1,5 +1,5 @@
 ---
-dxpb_master_repo_giturl: git://github.com/voidlinux/void-packages.git
+dxpb_master_repo_giturl: git://github.com/void-linux/void-packages.git
 
 dxpb_master_dataroot: /var/lib/dxpb
 
