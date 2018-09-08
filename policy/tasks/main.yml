@@ -1,0 +1,8 @@
+---
+- name: Install sudo policy
+  copy:
+    src: dxpb.sudoers
+    dest: /etc/sudoers.d/dxpb
+    owner: root
+    group: root
+    mode: 0644
