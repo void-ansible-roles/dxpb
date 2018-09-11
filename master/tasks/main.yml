@@ -101,6 +101,16 @@
   notify:
     - dxpb-frontend
 
+- name: Configure dxpb-grapher
+  template:
+    src: dxpb-grapher.conf.j2
+    dest: /etc/sv/dxpb-grapher/conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - dxpb-grapher
+
 - name: Install firewall rules
   template:
     src: dxpb-master.rules
